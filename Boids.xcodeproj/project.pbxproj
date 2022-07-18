@@ -38,6 +38,14 @@
 		B27E49292883915C00140A6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B27E48D52883915C00140A6B /* Assets.xcassets */; };
 		B27E492A2883915C00140A6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B27E48D52883915C00140A6B /* Assets.xcassets */; };
 		B27E492B2883915C00140A6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B27E48D52883915C00140A6B /* Assets.xcassets */; };
+		B27E49402883983E00140A6B /* CGPoint+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E493F2883983E00140A6B /* CGPoint+Math.swift */; };
+		B27E49412883983E00140A6B /* CGPoint+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E493F2883983E00140A6B /* CGPoint+Math.swift */; };
+		B27E49422883983E00140A6B /* CGPoint+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E493F2883983E00140A6B /* CGPoint+Math.swift */; };
+		B27E49432883983E00140A6B /* CGPoint+Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E493F2883983E00140A6B /* CGPoint+Math.swift */; };
+		B27E494A2884872D00140A6B /* Boid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E49492884872D00140A6B /* Boid.swift */; };
+		B27E494B2884872D00140A6B /* Boid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E49492884872D00140A6B /* Boid.swift */; };
+		B27E494C2884872D00140A6B /* Boid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E49492884872D00140A6B /* Boid.swift */; };
+		B27E494D2884872D00140A6B /* Boid.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27E49492884872D00140A6B /* Boid.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +116,8 @@
 		B27E49172883915C00140A6B /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
 		B27E491A2883915C00140A6B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B27E491C2883915C00140A6B /* Boids_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Boids_macOS.entitlements; sourceTree = "<group>"; };
+		B27E493F2883983E00140A6B /* CGPoint+Math.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGPoint+Math.swift"; sourceTree = "<group>"; };
+		B27E49492884872D00140A6B /* Boid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Boid.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +171,8 @@
 				B27E48D22883915A00140A6B /* Actions.sks */,
 				B27E48D32883915A00140A6B /* GameScene.sks */,
 				B27E48D42883915A00140A6B /* GameScene.swift */,
+				B27E493F2883983E00140A6B /* CGPoint+Math.swift */,
+				B27E49492884872D00140A6B /* Boid.swift */,
 				B27E48D52883915C00140A6B /* Assets.xcassets */,
 			);
 			path = "Boids Shared";
@@ -430,6 +442,8 @@
 			files = (
 				B27E49242883915C00140A6B /* GameScene.swift in Sources */,
 				B27E48E02883915C00140A6B /* GameViewController.swift in Sources */,
+				B27E49402883983E00140A6B /* CGPoint+Math.swift in Sources */,
+				B27E494A2884872D00140A6B /* Boid.swift in Sources */,
 				B27E48DE2883915C00140A6B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -440,6 +454,8 @@
 			files = (
 				B27E49252883915C00140A6B /* GameScene.swift in Sources */,
 				B27E48FD2883915C00140A6B /* ExtensionDelegate.swift in Sources */,
+				B27E49412883983E00140A6B /* CGPoint+Math.swift in Sources */,
+				B27E494B2884872D00140A6B /* Boid.swift in Sources */,
 				B27E48FB2883915C00140A6B /* InterfaceController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -450,6 +466,8 @@
 			files = (
 				B27E49262883915C00140A6B /* GameScene.swift in Sources */,
 				B27E49082883915C00140A6B /* GameViewController.swift in Sources */,
+				B27E49422883983E00140A6B /* CGPoint+Math.swift in Sources */,
+				B27E494C2884872D00140A6B /* Boid.swift in Sources */,
 				B27E49062883915C00140A6B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -460,6 +478,8 @@
 			files = (
 				B27E49272883915C00140A6B /* GameScene.swift in Sources */,
 				B27E49182883915C00140A6B /* GameViewController.swift in Sources */,
+				B27E49432883983E00140A6B /* CGPoint+Math.swift in Sources */,
+				B27E494D2884872D00140A6B /* Boid.swift in Sources */,
 				B27E49162883915C00140A6B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
