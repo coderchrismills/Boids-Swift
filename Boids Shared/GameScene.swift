@@ -10,35 +10,31 @@
 
 import SpriteKit
 
-// TODO: Make UI driven
-struct GameConfig {
+@objc class GameConfig: NSObject {
+    @objc dynamic var cohesion_intensity: CGFloat = 0.2
+    @objc dynamic var separation_intensity: CGFloat = 0.15
+    @objc dynamic var alignment_intensity: CGFloat = 0.3
+    @objc dynamic var seek_intensity: CGFloat = 0.3
+}
+
+class GameScene: SKScene {
 #if os(iOS) || os(tvOS)
     let number_of_boids: Int = 100
 #elseif os(OSX)
-    let number_of_boids: Int = 100
+    let number_of_boids: Int = 200
 #elseif os(watchOS)
     let number_of_boids: Int = 10
 #else
     let number_of_boids: Int = 0
 #endif
     
-    let max_flock_speed: CGFloat = 2
-    let max_goal_speed: CGFloat = 1
-    let max_applied_force: CGFloat = 0.1
-    let cohesion_intensity: CGFloat = 0.1
-    let separation_intensity: CGFloat = 0.2
-    let alignment_intensity: CGFloat = 0.3
-    let seek_intensity: CGFloat = 0.3
-}
-
-class GameScene: SKScene {
-    fileprivate let config = GameConfig()
+    fileprivate var config = GameConfig()
     fileprivate var flock = [Boid]()
     fileprivate var current_frame_count:Int = 0
     fileprivate var update_frequency:Int = 30
     fileprivate var last_time_updated: TimeInterval = 0
     
-    class func newGameScene() -> GameScene {
+    class func newGameScene(config: GameConfig) -> GameScene {
         guard let scene = SKScene(fileNamed: "GameScene") as? GameScene else {
             print("Failed to load GameScene.sks")
             abort()
@@ -46,11 +42,13 @@ class GameScene: SKScene {
         
         scene.scaleMode = .aspectFill
         
+        scene.config = config
+        
         return scene
     }
     
     func setUpScene() {
-        for i in 0..<config.number_of_boids {
+        for i in 0..<number_of_boids {
             let boid = Boid(with: "🐠", config: config)
             let start_position = CGPoint.get_random_point(bounds: size)
             boid.position = start_position
@@ -59,6 +57,8 @@ class GameScene: SKScene {
             flock.append(boid)
             addChild(boid)
         }
+        
+        flock[0].set_debug_enabled(enable: true)
     }
     
 #if os(watchOS)
@@ -73,7 +73,7 @@ class GameScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         let dt = last_time_updated == 0 ? 0 : (currentTime - last_time_updated)
-        let need_to_update_neighbors = current_frame_count % update_frequency == 0
+        let need_to_update_neighbors = true // current_frame_count % update_frequency == 0
         for boid in self.flock {
             if need_to_update_neighbors {
                 boid.update_list_of_neighbors(flock: self.flock)

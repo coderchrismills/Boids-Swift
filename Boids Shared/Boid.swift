@@ -8,17 +8,19 @@
 import SpriteKit
 
 class Boid: SKSpriteNode {
-    var max_flock_speed: CGFloat = 0
-    var max_applied_force: CGFloat = 0
-    var max_goal_speed: CGFloat = 0
+    let max_flock_speed: CGFloat = 2
+    let max_goal_speed: CGFloat = 1
+    let max_applied_force: CGFloat = 0.1
     
     let character_size: CGFloat = 36
 
     var velocity: CGPoint = CGPoint.zero
     var acceleration: CGPoint = CGPoint.zero
     
-    fileprivate let percepction_radius: CGFloat = 60
-    fileprivate let perception_field_of_view_in_radians:CGFloat = .pi
+    fileprivate var is_debug_enable: Bool = false
+    
+    fileprivate let percepction_radius: CGFloat = 100
+    fileprivate let perception_field_of_view_in_radians:CGFloat = .pi / 2
     
     fileprivate var neighbors: [Boid] = []
     
@@ -29,6 +31,13 @@ class Boid: SKSpriteNode {
     
     fileprivate var is_seeking: Bool = false
     fileprivate var seek_goal: CGPoint = CGPoint.zero
+    fileprivate var prior_to_seek_velocity: CGPoint = CGPoint.zero
+    fileprivate var seek_cooldown_in_frames: CGFloat = 10
+    
+    fileprivate var cohesion_observation: NSKeyValueObservation?
+    fileprivate var separation_observation: NSKeyValueObservation?
+    fileprivate var alignment_observation: NSKeyValueObservation?
+    fileprivate var seek_observation: NSKeyValueObservation?
     
     public init(with charater: Character, config:GameConfig) {
         super.init(texture: nil, color: SKColor.clear, size: CGSize())
@@ -38,14 +47,25 @@ class Boid: SKSpriteNode {
         
         size = CGSize(width: character_size, height: character_size)
         
-        max_flock_speed = config.max_flock_speed
-        max_goal_speed = config.max_goal_speed
-        max_applied_force = config.max_applied_force
-        
         cohesion_intensity = config.cohesion_intensity
+        cohesion_observation = config.observe(\GameConfig.cohesion_intensity, options: .new) { config, change in
+            self.cohesion_intensity = change.newValue ?? 0.0
+        }
+        
         separation_intensity = config.separation_intensity
+        separation_observation = config.observe(\GameConfig.separation_intensity, options: .new) { config, change in
+            self.separation_intensity = change.newValue ?? 0.0
+        }
+        
         alignment_intensity = config.alignment_intensity
+        alignment_observation = config.observe(\GameConfig.alignment_intensity, options: .new) { config, change in
+            self.alignment_intensity = change.newValue ?? 0.0
+        }
+        
         seek_intensity = config.seek_intensity
+        seek_observation = config.observe(\GameConfig.seek_intensity, options: .new) { config, change in
+            self.seek_intensity = change.newValue ?? 0.0
+        }
         
         let label = SKLabelNode(text: String(charater))
         label.fontSize = character_size
@@ -60,24 +80,47 @@ class Boid: SKSpriteNode {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func set_cohesion_intensity(to intensity: CGFloat) {
-        cohesion_intensity = intensity
-    }
-    
-    public func set_separation_intensity(to intensity: CGFloat) {
-        separation_intensity = intensity
-    }
-    
-    public func set_alignment_intensity(to intensity: CGFloat) {
-        alignment_intensity = intensity
+    public func set_debug_enabled(enable: Bool) {
+#if os(iOS) || os(tvOS)
+        if is_debug_enable != enable {
+            is_debug_enable = enable
+            let debugNode = self.childNode(withName: "DebugNode") ?? SKNode()
+            if enable {
+                debugNode.name = "DebugNode"
+                let circle = SKShapeNode(circleOfRadius: percepction_radius)
+                circle.strokeColor = .black
+                circle.glowWidth = 1.0
+                debugNode.addChild(circle)
+                addChild(debugNode)
+                // doing some rotation here b/c our fish emoji points to the left rather than "up"
+                let arc_path = UIBezierPath(arcCenter: CGPoint(x: 0, y: 0), radius: percepction_radius, startAngle: 0, endAngle: perception_field_of_view_in_radians, clockwise: true)
+                arc_path.flatness = 100
+                let arc = SKShapeNode()
+                arc.lineWidth = 20
+                arc.strokeColor = .green
+                arc.path = arc_path.cgPath
+                arc.zRotation = .pi - (perception_field_of_view_in_radians / 2)
+                debugNode.addChild(arc)
+                
+                let line = SKShapeNode(rect: CGRect(x: 0, y: 0, width: 2, height: 100))
+                line.lineWidth = 10
+                line.strokeColor = .black
+                line.zRotation = .pi / 2
+                debugNode.addChild(line)
+            } else {
+                debugNode.removeAllChildren()
+                debugNode.removeFromParent()
+            }
+        }
+#endif
     }
     
     public func update(dt: TimeInterval) {
         if neighbors.count > 0 {
-            update_cohesion()
-            update_alignment()
             update_seek()
+            update_cohesion()
             update_separation()
+            update_alignment()
         }
         
         update_bounds()
@@ -86,16 +129,30 @@ class Boid: SKSpriteNode {
     }
     
     public func update_list_of_neighbors(flock: [Boid]) {
+        if is_debug_enable {
+            for n in neighbors {
+                n.color = .clear
+            }
+        }
+        
         let neighbors = flock.filter {
             if ($0 == self) { return false }
             let distance = $0.position.distance(from: self.position)
             
-            let n_dot_v = $0.velocity.unit * self.velocity.unit
+            let delta = ($0.position - position).unit
+            let n_dot_v = delta * self.velocity.unit
+            let half_angle = perception_field_of_view_in_radians / 2
             let theta = acos(n_dot_v)
-            return (distance < percepction_radius) && (theta < perception_field_of_view_in_radians)
+            return (distance < percepction_radius) && (theta < half_angle)
         }
         
-       self.neighbors = neighbors
+        if is_debug_enable {
+            for n in neighbors {
+                n.color = .red
+            }
+        }
+        
+        self.neighbors = neighbors
     }
     
     public func update_cohesion() {
@@ -108,9 +165,10 @@ class Boid: SKSpriteNode {
 
         center_of_mass = center_of_mass / CGFloat(neighbors.count)
         var target_velocity = center_of_mass - self.position
-        target_velocity = target_velocity.unit * max_flock_speed
+        target_velocity = target_velocity.limit(to: max_flock_speed)
         var force = target_velocity - velocity
-        force = force.unit * (max_applied_force * cohesion_intensity)
+        force = force.limit(to: max_applied_force)
+        force = force * cohesion_intensity
         acceleration += force
     }
     
@@ -123,9 +181,11 @@ class Boid: SKSpriteNode {
             target_velocity += delta
         }
         
-        target_velocity = (target_velocity / CGFloat(neighbors.count)) * max_flock_speed
+        target_velocity = (target_velocity / CGFloat(neighbors.count))
+        target_velocity = target_velocity.limit(to: max_flock_speed)
         var force = (target_velocity - velocity)
-        force = force.unit * (max_applied_force * separation_intensity)
+        force = force.limit(to: max_applied_force)
+        force = force * separation_intensity
         acceleration += force
     }
     
@@ -137,9 +197,11 @@ class Boid: SKSpriteNode {
             target_velocity += boid.velocity
         }
         
-        target_velocity = (target_velocity / CGFloat(neighbors.count)) * max_flock_speed
+        target_velocity = (target_velocity / CGFloat(neighbors.count))
+        target_velocity = target_velocity.limit(to: max_flock_speed)
         var force = (target_velocity - velocity)
-        force = force.unit * (max_applied_force * alignment_intensity)
+        force = force.limit(to: max_applied_force)
+        force = force * alignment_intensity
         acceleration += force
     }
     
@@ -172,27 +234,30 @@ class Boid: SKSpriteNode {
     
     fileprivate func update_seek() {
         if is_seeking {
-            if position.is_within(of: seek_goal, tolerance: character_size) {
+            if position.is_within(of: seek_goal, tolerance: character_size) || seek_cooldown_in_frames < 0 {
                 is_seeking = false
                 seek_goal = CGPoint.zero
+                velocity = prior_to_seek_velocity
             } else {
-                var force = (seek_goal - position).unit * max_goal_speed
-                force = force.unit * (max_applied_force * seek_intensity)
+                var force = (seek_goal - position)
+                force = force.limit(to: max_goal_speed)
+                force = force * seek_intensity
                 acceleration += force
             }
+            seek_cooldown_in_frames = seek_cooldown_in_frames - 1
         }
     }
     
     public func seek(to point: CGPoint) {
         is_seeking = true
         seek_goal = point
+        prior_to_seek_velocity = velocity
+        seek_cooldown_in_frames = 10
     }
     
     fileprivate func update_position(dt: CGFloat) {
         velocity += acceleration
-        if velocity.length > max_flock_speed {
-            velocity = velocity.unit * max_flock_speed
-        }
+        velocity = velocity.limit(to: max_flock_speed)
         position += velocity
     }
     

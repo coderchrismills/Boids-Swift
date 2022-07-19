@@ -13,10 +13,12 @@ class InterfaceController: WKInterfaceController {
 
     @IBOutlet var skInterface: WKInterfaceSKScene!
     
+    let config = GameConfig()
+    
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
         
-        let scene = GameScene.newGameScene()
+        let scene = GameScene.newGameScene(config: config)
         
         // Present the scene
         self.skInterface.presentScene(scene)

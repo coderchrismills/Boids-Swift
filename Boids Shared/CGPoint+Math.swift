@@ -42,6 +42,14 @@ extension CGPoint {
         return atan2(y, x)
     }
     
+    public func limit(to max_magnitude: CGFloat) -> CGPoint {
+        var limited = self
+        if (self.length > max_magnitude) {
+            limited = self.unit * max_magnitude
+        }
+        return limited
+    }
+    
     static public func get_random_point(bounds: CGSize) -> CGPoint {
         let x = CGFloat.random(in: (-bounds.width/2)...(bounds.width/2))
         let y = CGFloat.random(in: (-bounds.height/2)...(bounds.height/2))

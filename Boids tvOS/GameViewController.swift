@@ -10,11 +10,11 @@ import SpriteKit
 import GameplayKit
 
 class GameViewController: UIViewController {
-    
+    let config = GameConfig()
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let scene = GameScene.newGameScene()
+        let scene = GameScene.newGameScene(config: config)
         
         // Present the scene
         let skView = self.view as! SKView
