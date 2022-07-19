@@ -73,7 +73,7 @@ class GameScene: SKScene {
 
     override func update(_ currentTime: TimeInterval) {
         let dt = last_time_updated == 0 ? 0 : (currentTime - last_time_updated)
-        let need_to_update_neighbors = true // current_frame_count % update_frequency == 0
+        let need_to_update_neighbors = current_frame_count % update_frequency == 0
         for boid in self.flock {
             if need_to_update_neighbors {
                 boid.update_list_of_neighbors(flock: self.flock)
